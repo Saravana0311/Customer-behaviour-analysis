@@ -66,8 +66,3 @@ df['Sentiment'] = df['ReviewText'].apply(lambda x: 'Positive' if analyzer.polari
 🔹 AI-based Predictive Customer Retention Model
 🔹 Automated Customer Engagement Score Calculation
 🔹 Real-time Sentiment Tracking using AI Models
-
-📩 Contact & Contributions
-🔗 GitHub: (https://github.com/Dhamudaran/Customer-Behaviour-Analysis)
-📧 Email: darandd@gmail.com
-💡 Contributions Welcome! Feel free to fork & submit pull requests.
