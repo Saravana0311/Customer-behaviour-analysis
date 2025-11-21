@@ -1,0 +1,111 @@
+#1) Identify drop-off points in the customer journey.
+
+SQL ="""select stage,count(*) DropOffCount from mm.guvi_customer_journey  a
+where a.action='Drop-off'
+group by stage
+order by DropOffCount"""
+
+#2) Find common actions leading to successful conversions.
+
+SQL ="""SELECT a.Action,b.productname ,COUNT(*) AS Frequency
+FROM mm.guvi_customer_journey a
+JOIN mm.guvi_products b ON a.ProductID = b.ProductID
+WHERE a.Stage = 'Checkout' AND a.Action <> 'Drop-off'
+GROUP BY a.Action,b.productname
+ORDER BY Frequency DESC;"""
+
+#3) Calculate average duration per stage for engagement insights.
+
+SQL ="""SELECT Stage, AVG(Duration) AS Avg_Duration
+	FROM mm.guvi_customer_journey
+	GROUP BY Stage
+	ORDER BY Avg_Duration DESC;;"""
+	
+
+Customer Reviews Analysis (SQL & Python)
+
+4)Low Rating vs High Rating
+
+SQL="""
+WITH RATING_CTE AS (
+    SELECT  
+        B.PRODUCTNAME, 
+        B.CATEGORY, 
+        AVG(A.RATING) AS AvgRating
+    FROM MM.GUVI_CUSTOMER_REVIEWS A  
+    LEFT JOIN MM.GUVI_PRODUCTS B ON A.PRODUCTID = B.PRODUCTID
+    GROUP BY B.PRODUCTNAME, B.CATEGORY
+),
+LOWRATING AS (
+    SELECT PRODUCTNAME, CATEGORY, AVGRATING, 'LOWRATING' AS RATINGSCALE
+    FROM RATING_CTE
+    ORDER BY AvgRating ASC
+    LIMIT 1
+),
+HIGHRATING AS (
+    SELECT PRODUCTNAME, CATEGORY, AVGRATING, 'HIGHRATING' AS RATINGSCALE
+    FROM RATING_CTE
+    ORDER BY AvgRating DESC
+    LIMIT 1
+)
+SELECT * FROM LOWRATING
+UNION ALL 
+SELECT * FROM HIGHRATING;"""
+
+5) Ratings 
+
+
+SQL="""
+select * from mm.guvi_customer_reviews a left join mm.guvi_products b
+on a.productID=b.productID
+"""
+
+
+#************************Marketing Effectiveness (SQL):*******************************************
+
+6) Repeated Customers #retention
+
+SQL ="""
+WITH repeat_customers AS (
+    SELECT CustomerID, COUNT(*) AS purchase_count
+    FROM mm.guvi_customer_journey
+    GROUP BY CustomerID
+    HAVING COUNT(*) > 1
+)
+SELECT 
+    (COUNT(DISTINCT r.CustomerID) * 100.0 / COUNT(DISTINCT c.CustomerID)) AS RetentionRate
+FROM mm.guvi_customers c
+LEFT JOIN repeat_customers r ON c.CustomerID = r.CustomerID;
+"""
+
+7) Repeatedcustomers
+
+
+SQL ="""
+SELECT 
+    CASE WHEN purchase_count > 1 THEN 'Repeat Buyer' ELSE 'First-Time Buyer' END AS BuyerType,
+    COUNT(*) AS TotalCustomers
+FROM (
+    SELECT CustomerID, COUNT(*) AS purchase_count
+    FROM mm.guvi_customer_journey
+    WHERE Stage = 'Checkout'
+    GROUP BY CustomerID
+) AS customer_purchases
+GROUP BY BuyerType;
+"""
+
+8)  Best-Performing Products Per Region.
+
+
+SQL ="""
+SELECT 
+    g.country ,
+    COUNT(j.ProductID) AS SalesCount
+FROM mm.guvi_customer_journey j
+JOIN mm.guvi_products p ON j.ProductID = p.ProductID
+JOIN mm.guvi_customers c ON j.CustomerID = c.CustomerID
+JOIN mm.guvi_geography g ON c.GeographyID = g.GeographyID
+WHERE j.Stage = 'Checkout'
+GROUP BY g.country
+ORDER BY  SalesCount desc;
+"""
